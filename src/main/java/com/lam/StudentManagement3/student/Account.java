@@ -12,54 +12,54 @@ public class Account implements Serializable{
 
     @Id
     @Column(name = "Id")
-    private String Id;
+    private String id;
 
     @Column(name = "Username")
-    private String Username;
+    private String username;
 
     @Column(name = "Password")
-    private String Password;
+    private String password;
 
     public Account() {
 
     }
 
     public Account(String id, String username, String password) {
-        Id = id;
-        Username = username;
-        Password = password;
+        id = id;
+        username = username;
+        password = password;
     }
 
     public String getId() {
-        return Id;
+        return id;
     }
 
     public void setId(String id) {
-        Id = id;
+        this.id = id;
     }
 
     public String getUsername() {
-        return Username;
+        return username;
     }
 
     public void setUsername(String username) {
-        Username = username;
+        this.username = username;
     }
 
     public String getPassword() {
-        return Password;
+        return password;
     }
 
     public void setPassword(String password) {
-        Password = password;
+        this.password = password;
     }
 
     @Override
     public String toString() {
         return "Account{" +
-                "Id='" + Id + '\'' +
-                ", Username='" + Username + '\'' +
-                ", Password='" + Password + '\'' +
+                "id='" + id + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
                 '}';
     }
 }

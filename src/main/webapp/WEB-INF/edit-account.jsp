@@ -16,7 +16,7 @@ ID: <input type="text" name="Id" value="${Id}">
 <br />
 username: <input type="text" name="Username" value="${Username}">
 <br />
-password: <input type="text" name="Password" value="${Password}">
+password: <input type="password" name="Password" value="${Password}">
 <br />
 <input type="submit" value="Submit" />
 

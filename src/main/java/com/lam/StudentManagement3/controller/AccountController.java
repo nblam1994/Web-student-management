@@ -1,15 +1,26 @@
 package com.lam.StudentManagement3.controller;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lam.StudentManagement3.service.AccountService;
 import com.lam.StudentManagement3.service.StudentService;
 import com.lam.StudentManagement3.student.Account;
+import com.lam.StudentManagement3.student.Student;
+import com.lam.StudentManagement3.util.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Map;
 
 
@@ -39,7 +50,10 @@ public class AccountController {
 
         if(account == null) {
 
-            accountService.addStudent(new Account(id, username, password));
+            Account newAccount = new Account(id, username, password);
+            accountService.addStudent(newAccount);
+            ObjectMapper mapper = new ObjectMapper();
+            response.addCookie(new Cookie(newAccount.getId(), mapper.writeValueAsString(newAccount)));
             response.sendRedirect("/");
         }
         else {
@@ -49,26 +63,51 @@ public class AccountController {
     }
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String getLogin(){
+    public String getLogin(HttpServletResponse response, @CookieValue(value = "id", required=false) String acc, Map<String, Object> model){
+
+
+        try {
+            if (acc != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                Account accountExist = mapper.readValue(acc, Account.class);
+                Student student = studentService.getStudent(accountExist.getId());
+
+                if(student != null) {
+                    model.put("student", studentService.getStudent(accountExist.getId()));
+                    return "view-student";
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return "login";
+        }
+
 
         return "login";
     }
 
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public void postLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void postLogin(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
 
         String id = request.getParameter("id");
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
         Account account = accountService.getAccount(id);
+        ObjectMapper mapper = new ObjectMapper();
+        session.setAttribute("account", account);
         if(account != null) {
+
+
+            response.addCookie( new Cookie("id", URLEncoder.encode(mapper.writeValueAsString(account), "UTF-8")));
 
             if(username.equals("admin") && password.equals("admin")) {
                 response.sendRedirect("/student-list");
             }
             else if (username.equals(account.getUsername()) && password.equals(account.getPassword())) {
+
                 response.sendRedirect("/student/" + id);
             }
             else {
@@ -82,15 +121,25 @@ public class AccountController {
 
 
     @RequestMapping(value = "/account-edit/{id}", method = RequestMethod.GET)
-    public String editPassword(@PathVariable String id, Map<String, Object> model) {
+    public String editPassword(@PathVariable String id, HttpServletRequest request, Map<String, Object> model) {
 
-        System.out.println("Here");
-        Account account = accountService.getAccount(id);
-        model.put("Id", account.getId());
-        model.put("Username", account.getUsername());
-        model.put("Password", account.getPassword());
+      //  System.out.println("Here");
 
-        return "edit-account";
+        String idUser = (String) request.getSession().getAttribute("id");
+
+        if(idUser.equals(id)) {
+
+            Account account = accountService.getAccount(id);
+            model.put("Id", account.getId());
+            model.put("Username", account.getUsername());
+            model.put("Password", account.getPassword());
+
+            return "edit-account";
+        }
+        else {
+
+            return "login";
+        }
     }
 
 
@@ -102,6 +151,68 @@ public class AccountController {
         String Password = request.getParameter("Password");
         accountService.editStudent(new Account(Id, Username, Password));
         response.sendRedirect("/");
+    }
+
+    @RequestMapping(value = "/cookies", method = RequestMethod.GET)
+    public void getCookies(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        String name = request.getParameter("name");
+
+        Cookie cookie = new Cookie("name", name);
+        Cookie cookieExist = Util.getCookie(request, "name");
+        response.addCookie(cookie);
+
+        if(cookieExist != null) {
+
+            response.getWriter().print("Cookies exist, add cookies");
+        }
+        else {
+            response.getWriter().print("Add new cookies");
+        }
+
+    }
+
+    @RequestMapping(value = "/session", method = RequestMethod.GET)
+    public void getSession(HttpServletRequest request, HttpServletResponse response) {
+
+
+        try {
+
+            String name = request.getParameter("name");
+
+            HttpSession session = request.getSession();
+
+            String sessionName = (String) request.getSession().getAttribute("name");
+            session.setAttribute("name", name);
+
+
+            if (sessionName != null) {
+
+                response.getWriter().print("Session exist, update session");
+            } else {
+                response.getWriter().print("Add new session");
+            }
+        }catch (IOException e) {
+
+
+        }
+    }
+
+
+    @RequestMapping(value = "/cookie-delete")
+    public void deleteCookies(HttpServletResponse response, HttpSession session) {
+
+        try {
+        ObjectMapper mapper = new ObjectMapper();
+        Account account = (Account) session.getAttribute("account");
+        Cookie cookie = new Cookie("id", URLEncoder.encode(mapper.writeValueAsString(account), "UTF-8"));
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        response.sendRedirect("/");
+        }
+        catch (Exception e) {
+
+        }
     }
 
 

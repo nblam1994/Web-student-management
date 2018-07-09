@@ -14,6 +14,7 @@ name: ${student.studentName}
 class: ${student.className}
 <br />
 Score: ${student.score}
-
+<br />
+<a href="/cookie-delete">Log Out</a>
 </body>
 </html>
