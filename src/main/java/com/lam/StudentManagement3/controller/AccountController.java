@@ -34,6 +34,9 @@ public class AccountController {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private ObjectMapper mapper;
+
 
     @RequestMapping(value = "/register", method = RequestMethod.GET)
     public String getRegister() {
@@ -62,12 +65,20 @@ public class AccountController {
         }
     }
 
+    @RequestMapping(value = "/login")
+    public String RenderLogin() {
+
+        return "login";
+    }
+
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String getLogin(HttpServletResponse response, @CookieValue(value = "id", required=false) String acc, Map<String, Object> model){
+    public String getHome(HttpServletResponse response, @CookieValue(value = "id", required=false) String acc, Map<String, Object> model){
+
 
 
         try {
             if (acc != null) {
+
                 ObjectMapper mapper = new ObjectMapper();
                 Account accountExist = mapper.readValue(acc, Account.class);
                 Student student = studentService.getStudent(accountExist.getId());
@@ -79,7 +90,7 @@ public class AccountController {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Exception at login page");
             return "login";
         }
 
@@ -94,14 +105,24 @@ public class AccountController {
         String id = request.getParameter("id");
         String username = request.getParameter("username");
         String password = request.getParameter("password");
+        String checked = request.getParameter("checked");
+
 
         Account account = accountService.getAccount(id);
+        Student student = studentService.getStudent(id);
+
+
         ObjectMapper mapper = new ObjectMapper();
+
         session.setAttribute("account", account);
+        session.setAttribute("student", student);
+
         if(account != null) {
 
-
-            response.addCookie( new Cookie("id", URLEncoder.encode(mapper.writeValueAsString(account), "UTF-8")));
+            if(checked.equals("on")) {
+                response.addCookie(new Cookie("account",
+                        URLEncoder.encode(mapper.writeValueAsString(account), "UTF-8")));
+            }
 
             if(username.equals("admin") && password.equals("admin")) {
                 response.sendRedirect("/student-list");
@@ -123,7 +144,7 @@ public class AccountController {
     @RequestMapping(value = "/account-edit/{id}", method = RequestMethod.GET)
     public String editPassword(@PathVariable String id, HttpServletRequest request, Map<String, Object> model) {
 
-      //  System.out.println("Here");
+
 
         String idUser = (String) request.getSession().getAttribute("id");
 
@@ -205,13 +226,14 @@ public class AccountController {
         try {
         ObjectMapper mapper = new ObjectMapper();
         Account account = (Account) session.getAttribute("account");
-        Cookie cookie = new Cookie("id", URLEncoder.encode(mapper.writeValueAsString(account), "UTF-8"));
+        Cookie cookie = new Cookie("account", URLEncoder.encode(mapper.writeValueAsString(account), "UTF-8"));
         cookie.setMaxAge(0);
         response.addCookie(cookie);
         response.sendRedirect("/");
         }
         catch (Exception e) {
-
+            System.out.println("Cookie delete exception");
+            e.printStackTrace();
         }
     }
 

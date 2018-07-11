@@ -32,15 +32,12 @@ public class StudentController {
     public String viewStudent(@PathVariable String id, Map<String, Object> model) {
 
         try {
-
-
                 Student student = studentService.getStudent(id);
                 model.put("student", student);
-
-
         }
         catch (Exception e) {
-            e.printStackTrace();
+
+            System.out.println("Exception at student view route");
         }
 
         return "view-student";
@@ -63,9 +60,6 @@ public class StudentController {
         float score = Float.parseFloat(request.getParameter("score"));
         Student student = new  Student(id, name, className, score);
         boolean isAdd = studentService.addStudent(student);
-
-        System.out.print("IsAdd: " +  isAdd);
-
         model.put("student", student);
         return "view-student";
     }

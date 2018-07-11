@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = "/student/{id}")
+@WebFilter(urlPatterns = "/*")
 public class LoginRequiredFiler implements Filter {
 
     @Override

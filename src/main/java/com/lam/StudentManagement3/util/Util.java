@@ -5,11 +5,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public class Util {
 
-    public static Cookie getCookie(HttpServletRequest request, String name) {
+    public static Cookie getCookie(HttpServletRequest request, String id) {
 
         Cookie[] cookies = request.getCookies();
         for(Cookie cookie : cookies) {
-            if(cookie.getName().equals(name)) {
+            if(cookie.getName().equals(id)) {
                 return cookie;
             }
         }
